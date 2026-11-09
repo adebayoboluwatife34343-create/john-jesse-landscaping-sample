@@ -1,0 +1,13 @@
+import { initCommon, initForm, mountStage, $, $$, RM } from './common.js';
+initCommon({ introMs: 3600 });
+const form = $('#qform'), sel = new Set();
+initForm(form, d => `Hi, I found your sample website and I'd like a free estimate.\nName: ${d.name}\nNeighborhood: ${d.area || '-'}\nServices: ${d.service || '-'}\nDetails: ${d.details}`);
+$$('.tile').forEach(b => b.addEventListener('click', () => { const v = b.dataset.pick, on = !sel.has(v); on ? sel.add(v) : sel.delete(v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); form.elements.service.value = [...sel].join(', '); $('#sel').textContent = sel.size ? [...sel].join(', ') : 'nothing yet'; }));
+const story = $('#story'), steps = $$('.step'), dots = $$('.dots a');
+const sp = () => { const r = story.getBoundingClientRect(); return Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - innerHeight))); };
+let cur = -1;
+const setStep = () => { const p = sp(), i = Math.min(5, Math.floor(p * 6 + .0001)); if (i !== cur) { cur = i; steps.forEach((s, k) => s.classList.toggle('on', k === i)); dots.forEach((d, k) => { d.classList.toggle('on', k === i); k === i ? d.setAttribute('aria-current', 'step') : d.removeAttribute('aria-current'); }); } };
+addEventListener('scroll', () => { setStep(); stage?.release(); }, { passive: true }); setStep();
+dots.forEach(d => d.addEventListener('click', e => { e.preventDefault(); const k = +d.dataset.step, top = story.offsetTop + (story.offsetHeight - innerHeight) * ((k + .5) / 6); scrollTo({ top, behavior: RM ? 'auto' : 'smooth' }); }));
+let stage = null;
+import('./scene.js').then(m => { stage = mountStage($('#yard'), m.default, { cam: [0, 5, 21], fov: 34, slider: '#grow', progress: sp }); }).catch(() => $('#yard').classList.add('nogl'));
